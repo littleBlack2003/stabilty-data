@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OPV 稳定性测试 · fig_pce</title>
+<meta name="description" content="有机太阳能电池（OPV）室内恒定光照稳定性测试主图 fig_pce">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --ink: #1a1d21;
+    --muted: #667085;
+    --line: #e4e7ec;
+    --blue: #2f86c9;
+    --red: #f2696c;
+    --accent: #0f766e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1216;
+      --card: #171b21;
+      --ink: #e7eaee;
+      --muted: #98a2b3;
+      --line: #272d36;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 28px 20px 64px; }
+
+  header { margin-bottom: 20px; }
+  h1 {
+    font-size: 22px; font-weight: 650; margin: 0 0 6px;
+    letter-spacing: .2px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  h1 .badge {
+    font-size: 11px; font-weight: 600; letter-spacing: .5px;
+    color: var(--accent); border: 1px solid currentColor; border-radius: 999px;
+    padding: 1px 8px; opacity: .85; text-transform: uppercase;
+  }
+  .sub { color: var(--muted); font-size: 13.5px; margin: 0; }
+
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 18px;
+  }
+  .chip {
+    font-size: 12.5px; color: var(--muted);
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 8px; padding: 4px 10px; white-space: nowrap;
+  }
+  .chip b { color: var(--ink); font-weight: 600; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 8px 24px -16px rgba(16,24,40,.2);
+  }
+  .card-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap;
+  }
+  .card-head .t { font-size: 13px; color: var(--muted); }
+  .card-head .t b { color: var(--ink); }
+  .card-head a {
+    font-size: 13px; color: var(--blue); text-decoration: none;
+    border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px;
+  }
+  .card-head a:hover { border-color: currentColor; }
+  .figbox { padding: 10px; background: #fff; }
+  .figbox img {
+    display: block; width: 100%; height: auto; border-radius: 6px; cursor: zoom-in;
+  }
+  @media (prefers-color-scheme: dark) { .figbox { background: #fdfdfd; } }
+
+  h2 { font-size: 14px; font-weight: 650; margin: 30px 0 10px; color: var(--muted); letter-spacing: .4px; text-transform: uppercase; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .tablecard { overflow-x: auto; }
+  th, td { padding: 9px 14px; text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { font-weight: 600; color: var(--muted); font-size: 12.5px; border-bottom: 1px solid var(--line); }
+  tbody tr + tr td { border-top: 1px solid var(--line); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; }
+  .g-MoOx .dot { background: var(--blue); }
+  .g-PEDOT .dot { background: var(--red); }
+  .num { font-variant-numeric: tabular-nums; }
+
+  footer {
+    margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 12.5px; display: flex; gap: 16px; flex-wrap: wrap;
+  }
+  footer a { color: var(--blue); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* lightbox */
+  #lb {
+    position: fixed; inset: 0; z-index: 50; display: none;
+    background: rgba(9,12,16,.92); backdrop-filter: blur(2px);
+    overflow: auto; padding: 24px; cursor: zoom-out;
+  }
+  #lb.on { display: block; }
+  #lb img { display: block; margin: 0 auto; max-width: none; width: 1400px; max-width: 96vw; border-radius: 8px; }
+  #lb .lbhint {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+    color: #d0d5dd; font-size: 12.5px; background: rgba(0,0,0,.5);
+    padding: 5px 12px; border-radius: 999px;
+  }
+  .err { color: #b42318; font-size: 13px; padding: 10px 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>OPV 稳定性测试主图 <span class="badge">fig_pce</span></h1>
+    <p class="sub">室内恒定光照 · ISOS-L 类 · 4×3 面板：原始值 / 归一化 / 末端斜率</p>
+  </header>
+
+  <div class="meta">
+    <span class="chip">体系 <b>MoOx/Ag</b> · <b>PEDOT-F/Ag</b></span>
+    <span class="chip">光强 <b>0.55 sun</b> (55 mW/cm²)</span>
+    <span class="chip">单片面积 <b>0.1 cm²</b></span>
+    <span class="chip">有效片数 <b>13</b>（剔除 C003/C007/C009）</span>
+    <span class="chip">末端斜率窗口 <b>最后 5 h</b></span>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="t">点击图片放大 · 数据快照 <b id="stamp">—</b></span>
+      <a href="fig_pce.png" target="_blank" rel="noopener">原图 / 下载 PNG ↓</a>
+    </div>
+    <div class="figbox">
+      <img id="fig" src="fig_pce.png" alt="fig_pce：PCE / Isc / Voc / FF 的原始值、归一化与末端斜率">
+    </div>
+  </div>
+
+  <h2>关键结果</h2>
+  <div class="card tablecard">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th>组别</th><th>有效片数</th><th>PCE₀ 中位 (%)</th>
+          <th>末点归一化 中位 (%)</th><th>范围 (%)</th><th>全程衰减率 中位 (%/h)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="6" class="err">正在读取 summary_groups.csv …</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <span>仓库：<a href="https://github.com/littleBlack2003/stabilty-data" target="_blank" rel="noopener">littleBlack2003/stabilty-data</a></span>
+    <span>源数据目录：<a href="https://github.com/littleBlack2003/stabilty-data/tree/main/indoor" target="_blank" rel="noopener">indoor/</a></span>
+    <span>效率口径：从 IV 曲线重算，未采信表头 Etac</span>
+  </footer>
+</div>
+
+<div id="lb"><img id="lbimg" alt="fig_pce 原图"><span class="lbhint">点击任意处关闭 · Esc</span></div>
+
+<script>
+(function () {
+  // ---- 数据快照时间：取 summary_groups.csv 的 Last-Modified（Pages 会下发）----
+  var stamp = document.getElementById('stamp');
+
+  // ---- 解析最简单 CSV（支持双引号包裹）----
+  function parseCSV(text) {
+    var rows = [], row = [], cur = '', q = false;
+    text = text.replace(/^\uFEFF/, '');
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+        else cur += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(cur); cur = ''; }
+      else if (c === '\n') { row.push(cur); cur = ''; if (row.length > 1 || row[0] !== '') rows.push(row); row = []; }
+      else if (c !== '\r') cur += c;
+    }
+    if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+    return rows;
+  }
+
+  function toneFor(short) {
+    return /PEDOT/i.test(short) ? 'g-PEDOT' : 'g-MoOx';
+  }
+
+  fetch('summary_groups.csv', { cache: 'no-store' })
+    .then(function (r) {
+      var lm = r.headers.get('last-modified');
+      if (lm) {
+        var d = new Date(lm);
+        if (!isNaN(d)) stamp.textContent = d.toLocaleString('zh-CN', { hour12: false });
+      }
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(function (txt) {
+      var rows = parseCSV(txt);
+      if (!rows.length) throw new Error('空文件');
+      var head = rows[0];
+      var idx = {};
+      head.forEach(function (h, i) { idx[h.trim()] = i; });
+      var cShort = idx['group_short'] ?? 1;
+      var cN     = idx['n_valid_cells'] ?? 3;
+      var cPce0  = idx['PCE0_median(%)'] ?? 4;
+      var cMed   = idx['PCE_norm_last_median(%)'] ?? 5;
+      var cMin   = idx['PCE_norm_last_min(%)'] ?? 6;
+      var cMax   = idx['PCE_norm_last_max(%)'] ?? 7;
+      var cDeg   = idx['degr_rate_median(%/h)'] ?? 8;
+
+      var f = function (v, n) {
+        var x = parseFloat(v);
+        return isFinite(x) ? x.toFixed(n === undefined ? 2 : n) : (v || '—');
+      };
+
+      var html = rows.slice(1).filter(function (r) { return r.length > 2 && r[0]; }).map(function (r) {
+        var short = (r[cShort] || r[0] || '').trim();
+        return '<tr class="' + toneFor(short) + '">' +
+          '<td><span class="dot"></span>' + short + '</td>' +
+          '<td class="num">' + (r[cN] || '—') + '</td>' +
+          '<td class="num">' + f(r[cPce0]) + '</td>' +
+          '<td class="num"><b>' + f(r[cMed]) + '</b></td>' +
+          '<td class="num">' + f(r[cMin]) + ' ~ ' + f(r[cMax]) + '</td>' +
+          '<td class="num">' + f(r[cDeg]) + '</td>' +
+        '</tr>';
+      }).join('');
+
+      document.querySelector('#tbl tbody').innerHTML =
+        html || '<tr><td colspan="6" class="err">summary_groups.csv 无数据行</td></tr>';
+    })
+    .catch(function (e) {
+      document.querySelector('#tbl tbody').innerHTML =
+        '<tr><td colspan="6" class="err">读取 summary_groups.csv 失败：' + e.message + '</td></tr>';
+    });
+
+  // ---- lightbox ----
+  var lb = document.getElementById('lb'), lbimg = document.getElementById('lbimg');
+  var src = document.getElementById('fig');
+  function open() { lbimg.src = src.src; lb.classList.add('on'); }
+  function close() { lb.classList.remove('on'); lbimg.removeAttribute('src'); }
+  src.addEventListener('click', open);
+  lb.addEventListener('click', close);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+})();
+</script>
+</body>
+</html>

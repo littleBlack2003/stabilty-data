@@ -56,6 +56,11 @@ for %%F in (report.txt summary_cells.csv summary_groups.csv points_all.csv round
 )
 echo        !COPIED! files copied
 
+rem ---- refresh the GitHub Pages snapshot (docs) ----
+if exist "indoor\fig_pce.png"        copy /y "indoor\fig_pce.png"        "docs\fig_pce.png" >nul
+if exist "indoor\summary_groups.csv" copy /y "indoor\summary_groups.csv" "docs\summary_groups.csv" >nul
+if exist "docs\fig_pce.png" echo        docs synced for Pages
+
 echo.
 echo ============================================================
 echo  [3/4] summarizing

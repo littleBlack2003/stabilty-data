@@ -7,8 +7,17 @@
 ```
 stabilty-data/
 ├── indoor/       室内恒定光照稳定性测试（ISOS-L 类）
-└── outdoor/      室外自然光稳定性测试（暂无数据）
+├── outdoor/      室外自然光稳定性测试（暂无数据）
+└── docs/         GitHub Pages 站点（只放 fig_pce.png 与 summary_groups.csv 的副本）
 ```
+
+## 在线预览
+
+**https://littleblack2003.github.io/stabilty-data/**
+
+页面只展示 `indoor/fig_pce.png` 主图，并附各组关键结果。
+站点源为 `main` 分支的 `/docs` 目录（legacy build），`docs/` 内的两个文件由
+`publish_indoor.bat` 在每次刷新数据时自动同步，无需手工维护。
 
 ## 通用说明
 
