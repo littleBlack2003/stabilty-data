@@ -146,6 +146,7 @@ QC = {
     "isc_min": 0.05,        # mA，几乎无电流
     "pmax_min": 0.01,       # mW
     "lamp_low_ratio": 0.85,  # 某轮中位 Isc < 全局中位 * 该比例 -> 判为光强偏低
+    "lamp_jump_ratio": 0.015,  # 相邻两轮中位 Isc 相对变化超过该值 -> 光强跳变告警
     "header_tol": 0.05,     # 表头汇总与曲线重算的相对偏差告警阈值
 }
 
@@ -676,6 +677,15 @@ def window_slope(series: list[tuple[float, float]], t_end: float, hours: float) 
 
 def _is_stable(slope: float, threshold: float) -> bool:
     return slope == slope and abs(slope) <= threshold
+
+
+def _verdict(slope: float, threshold: float) -> str:
+    """斜率的三态判定文案：稳定 / 回升 / 衰减。"""
+    if slope != slope:
+        return "数据不足"
+    if abs(slope) <= threshold:
+        return "已达稳定"
+    return "在回升（光浸泡或光源变亮）" if slope > 0 else "仍在衰减"
 
 
 def _median(values) -> float:
@@ -1442,8 +1452,30 @@ def make_report(out_dir, data_dir, args, points, stats, round_infos, summaries,
                 if metrics.get(c) and metrics[c]["n_valid"] and metrics[c]["group"] == name]
         med = _median(vals)
         L.append(f"  {group_short(name):<12} PCE 斜率中位 {fmt(med, 3):>7} %/h  →  "
-                 f"{'已达稳定' if _is_stable(med, thr) else '仍在衰减'}")
+                 f"{_verdict(med, thr)}")
     L.append(f"  共 {stable_cnt}/{len([m for m in metrics.values() if m['n_valid']])} 片达到稳定判据。")
+
+    # 尾窗内光源跳变提示：单轮中位 Isc 突变会把末端斜率直接带走，必须显式告警
+    if points and round_infos:
+        t0 = min(p.ts for p in points)
+        t_end_h = (max(p.ts for p in points) - t0).total_seconds() / 3600.0
+        win_rounds = [r for r in round_infos
+                      if r["median_isc"] == r["median_isc"]
+                      and (r["start"] - t0).total_seconds() / 3600.0 >= t_end_h - win]
+        win_rounds.sort(key=lambda r: r["start"])
+        jumps = []
+        for prev, cur in zip(win_rounds, win_rounds[1:]):
+            if prev["median_isc"] > 0:
+                ratio = cur["median_isc"] / prev["median_isc"] - 1.0
+                if abs(ratio) >= QC["lamp_jump_ratio"]:
+                    jumps.append((cur["round_id"], cur["start"], ratio))
+        if jumps:
+            L.append("")
+            L.append(f"  注意：尾窗（{win:g} h，{len(win_rounds)} 轮）内检测到 {len(jumps)} 次光强跳变"
+                     f"（|Δ中位 Isc| ≥ {QC['lamp_jump_ratio']:.1%}），末端斜率可能被光源变化主导：")
+            for rid, st, ratio in jumps:
+                L.append(f"    第 {rid} 轮 {st:%H:%M}  中位 Isc {ratio:+.1%}")
+            L.append(f"    → 建议延长窗口（--tail-hours {win * 2:g}）或先做光强校正再判稳定")
 
     # QC 汇总
     all_flags = {}
