@@ -126,7 +126,7 @@ DEFAULT_SUNS = 0.55         # 名义光强（sun）；实际测试用 0.55 sun =
 DEFAULT_ROUND_GAP = 60.0    # s，相邻测量时间间隔超过它就算新的一轮
 DEFAULT_MIN_AGE = 2.0       # s，文件修改距今小于该值则视为"可能正在写"，跳过
 DEFAULT_BASELINE = "first-round"   # first-round | firstN:<n> | best
-DEFAULT_TAIL_HOURS = 1.0      # 末端斜率窗口（最后 N 小时）
+DEFAULT_TAIL_HOURS = 5.0      # 末端斜率窗口（最后 N 小时）
 DEFAULT_STABLE_SLOPE = 0.10   # %/h，|末端斜率| 小于它视为"已稳定"
 DEFAULT_REPORT_DIR = "REPORT"     # 默认输出到 <数据目录>/REPORT（软件只写 MEAS/ 与 STAT/，不冲突）
 
@@ -668,11 +668,32 @@ def slope_per_hour(series: list[tuple[float, float]]) -> float:
 
 
 def window_slope(series: list[tuple[float, float]], t_end: float, hours: float) -> tuple[float, int]:
-    """serie 的末端窗口斜率 (%/h) 与参与点数。serie = [(t_h, 归一化值)]。"""
+    """serie 的末端窗口斜率 (%/h) 与参与点数。serie = [(t_h, 归一化值)]。
+
+    斜率由窗口内全部点做最小二乘线性拟合（np.polyfit 一次项）。
+    """
     rows = sorted(r for r in series if r[0] >= t_end - hours)
     if len(rows) < 3:
         return float("nan"), len(rows)
     return slope_per_hour(rows), len(rows)
+
+
+def window_fit(series: list[tuple[float, float]], t_end: float,
+               hours: float) -> tuple[float, float, int]:
+    """同一个线性拟合的 (斜率 %/h, R², 点数)，R² 用来判断线性拟合是否可靠。"""
+    rows = sorted(r for r in series if r[0] >= t_end - hours)
+    if len(rows) < 3:
+        return float("nan"), float("nan"), len(rows)
+    t = np.array([s[0] for s in rows])
+    y = np.array([s[1] for s in rows])
+    if t.max() - t.min() < 1e-9:
+        return float("nan"), float("nan"), len(rows)
+    k, b = np.polyfit(t, y, 1)
+    resid = y - (k * t + b)
+    ss_res = float(np.sum(resid ** 2))
+    ss_tot = float(np.sum((y - y.mean()) ** 2))
+    r2 = 1.0 - ss_res / ss_tot if ss_tot > 0 else float("nan")
+    return float(k), r2, len(rows)
 
 
 def _is_stable(slope: float, threshold: float) -> bool:
@@ -1430,23 +1451,28 @@ def make_report(out_dir, data_dir, args, points, stats, round_infos, summaries,
     thr = args.stable_slope
     L.append("")
     L.append("-" * 78)
-    L.append(f"末端稳定性：最后 {win:g} h 的线性斜率（%/h，判据 |斜率| ≤ {thr:g} %/h 视为稳定）")
+    L.append(f"末端稳定性：最后 {win:g} h 的线性拟合斜率（最小二乘，%/h，判据 |斜率| ≤ {thr:g} %/h 视为稳定）")
     L.append("-" * 78)
-    L.append(" 片     组别        PCE斜率   Isc斜率   Voc斜率   FF斜率    PCE稳定")
+    # 尾窗边界（全片共用同一末端时刻）
+    t0_all = min(p.ts for p in points) if points else None
+    t_end_h = ((max(p.ts for p in points) - t0_all).total_seconds() / 3600.0) if points else 0.0
+    L.append(" 片     组别        PCE斜率   Isc斜率   Voc斜率   FF斜率     R²  点数  稳定")
     stable_cnt = 0
     for cell in cells:
         m = metrics.get(cell)
         if not m or m["n_valid"] == 0:
             continue
         t = m["tail"]
-        p_slope = t["pce_slope_tail"][0]
-        ok = _is_stable(p_slope, thr)
+        p_slope, r2, nfit = window_fit(m["series_by"]["pce"], t_end_h, win)
+        ok = _is_stable(t["pce_slope_tail"][0], thr)
         stable_cnt += int(ok)
         L.append(f"{cell}  {group_short(m['group']):<12}"
-                 f"{fmt(p_slope, 3):>8}  {fmt(t['isc_slope_tail'][0], 3):>8}  "
+                 f"{fmt(t['pce_slope_tail'][0], 3):>8}  {fmt(t['isc_slope_tail'][0], 3):>8}  "
                  f"{fmt(t['voc_slope_tail'][0], 3):>8}  {fmt(t['ff_slope_tail'][0], 3):>8}"
-                 f"   {'是' if ok else '否'}")
+                 f"  {fmt(r2, 3):>5}  {nfit:>4}   {'是' if ok else '否'}")
     L.append("")
+    L.append("  R² 为 PCE 归一化值对时间的线性拟合决定系数（1 最优）；"
+             "< 0.30 说明窗口内被光强跳变/噪声主导，斜率不可信。")
     for name in sorted({m['group'] for m in metrics.values() if m['n_valid']}):
         vals = [metrics[c]["tail"]["pce_slope_tail"][0] for c in cells
                 if metrics.get(c) and metrics[c]["n_valid"] and metrics[c]["group"] == name]
@@ -1457,11 +1483,9 @@ def make_report(out_dir, data_dir, args, points, stats, round_infos, summaries,
 
     # 尾窗内光源跳变提示：单轮中位 Isc 突变会把末端斜率直接带走，必须显式告警
     if points and round_infos:
-        t0 = min(p.ts for p in points)
-        t_end_h = (max(p.ts for p in points) - t0).total_seconds() / 3600.0
         win_rounds = [r for r in round_infos
                       if r["median_isc"] == r["median_isc"]
-                      and (r["start"] - t0).total_seconds() / 3600.0 >= t_end_h - win]
+                      and (r["start"] - t0_all).total_seconds() / 3600.0 >= t_end_h - win]
         win_rounds.sort(key=lambda r: r["start"])
         jumps = []
         for prev, cur in zip(win_rounds, win_rounds[1:]):
