@@ -75,7 +75,7 @@ if errorlevel 1 (
 git push
 if errorlevel 1 (
     echo.
-    echo [WARN] push failed (network or credential). Commit kept locally;
+    echo [WARN] push failed - network or credential problem. Commit kept locally;
     echo        run this script again later to push.
     goto :end
 )
