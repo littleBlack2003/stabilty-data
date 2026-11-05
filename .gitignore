@@ -1,0 +1,11 @@
+# OS / 编辑器
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
+
+# 脚本运行产物
+__pycache__/
+*.pyc
+*.tmp

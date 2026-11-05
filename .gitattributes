@@ -1,0 +1,4 @@
+* text=auto eol=lf
+# 数据文件保持原样，不做换行转换（避免每次刷新都产生整文件 diff）
+*.csv -text
+*.png binary
