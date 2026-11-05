@@ -75,7 +75,7 @@ rem 顶部可改的配置
 set "DATA_DIR=D:\zlc2026年11月4日"      原始数据目录（含 MEAS/ 与 STAT/）
 set "SUNS=0.55"                          名义光强
 set "AREA=0.1"                           单片面积 cm²
-set "TAIL_HOURS=2"                       末端斜率窗口（小时）
+set "TAIL_HOURS=1"                       末端斜率窗口（小时）
 set "STABLE_SLOPE=0.1"                   稳定判据 %/h
 set "EXCLUDE=3,7,9"                      固定剔除的通道
 set "SCRIPT_SRC=...	ools\stability_report.py"   源脚本（存在则同步到 indoor/）

@@ -126,7 +126,7 @@ DEFAULT_SUNS = 0.55         # 名义光强（sun）；实际测试用 0.55 sun =
 DEFAULT_ROUND_GAP = 60.0    # s，相邻测量时间间隔超过它就算新的一轮
 DEFAULT_MIN_AGE = 2.0       # s，文件修改距今小于该值则视为"可能正在写"，跳过
 DEFAULT_BASELINE = "first-round"   # first-round | firstN:<n> | best
-DEFAULT_TAIL_HOURS = 2.0      # 末端斜率窗口（最后 N 小时）
+DEFAULT_TAIL_HOURS = 1.0      # 末端斜率窗口（最后 N 小时）
 DEFAULT_STABLE_SLOPE = 0.10   # %/h，|末端斜率| 小于它视为"已稳定"
 DEFAULT_REPORT_DIR = "REPORT"     # 默认输出到 <数据目录>/REPORT（软件只写 MEAS/ 与 STAT/，不冲突）
 

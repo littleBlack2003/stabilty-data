@@ -57,5 +57,5 @@ PEDOT-F/Ag     7    15.70%    95.56%      94.63~107.84%   -0.20 %/h
 ```bash
 # 原始数据目录结构：<data>/MEAS/*.txt、<data>/STAT/*.txt
 python stability_report.py --data "D:\zlc2026年11月4日" --suns 0.55 --area 0.1 \
-       --exclude 3,7,9 --tail-hours 2 --stable-slope 0.1
+       --exclude 3,7,9 --tail-hours 1 --stable-slope 0.1
 ```

@@ -7,7 +7,7 @@ rem ============================================================
 set "DATA_DIR=D:\zlc2026年11月4日"
 set "SUNS=0.55"
 set "AREA=0.1"
-set "TAIL_HOURS=2"
+set "TAIL_HOURS=1"
 set "STABLE_SLOPE=0.1"
 set "EXCLUDE=3,7,9"
 rem 归档脚本源头（可选，存在就同步到 indoor\）
