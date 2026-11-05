@@ -1,18 +1,17 @@
 @echo off
-chcp 65001 >nul
-setlocal
+setlocal enabledelayedexpansion
 rem ============================================================
-rem  一键刷新 + 推送 indoor 稳定性数据（双击运行）
-rem  下面的配置按需修改
+rem  one-click: refresh indoor stability data and push to GitHub
+rem  ��˫�����м��ɣ���������ÿɰ����޸ģ�
 rem ============================================================
-set "DATA_DIR=D:\zlc2026年11月4日"
+set "DATA_DIR=D:\zlc2026��11��4��"
 set "SUNS=0.55"
 set "AREA=0.1"
 set "TAIL_HOURS=2"
 set "STABLE_SLOPE=0.1"
 set "EXCLUDE=3,7,9"
-rem 归档脚本的源头（可选，存在就同步到 indoor\）；留空则不同步
-set "SCRIPT_SRC=E:\OneDrive\009自编写软件\Stability test softwares\tools\stability_report.py"
+rem �鵵�ű�Դͷ����ѡ�����ھ�ͬ���� indoor\��
+set "SCRIPT_SRC=E:\OneDrive\009�Ա�д����\Stability test softwares\tools\stability_report.py"
 
 cd /d "%~dp0"
 set "REPORT=%DATA_DIR%\REPORT"
@@ -20,26 +19,26 @@ set "LOG=%TEMP%\stability_publish.log"
 
 where python >nul 2>nul
 if errorlevel 1 (
-    echo [错误] 找不到 python，请确认已加入 PATH
+    echo [ERROR] python not found in PATH
     goto :end
 )
 
 echo ============================================================
-echo  1/4  分析原始数据
-echo       %DATA_DIR%
+echo  [1/4] analyzing raw data
+echo        %DATA_DIR%
 echo ============================================================
 python "indoor\stability_report.py" --data "%DATA_DIR%" --suns %SUNS% --area %AREA% ^
        --tail-hours %TAIL_HOURS% --stable-slope %STABLE_SLOPE% --exclude %EXCLUDE% > "%LOG%" 2>&1
 if errorlevel 1 (
-    echo [错误] 分析失败，请查看 %LOG%
+    echo [ERROR] analysis failed, see: %LOG%
     goto :end
 )
-findstr /c:"REPORT" "%LOG%"
 if exist "%SCRIPT_SRC%" copy /y "%SCRIPT_SRC%" "indoor\stability_report.py" >nul
+echo        done
 
 echo.
 echo ============================================================
-echo  2/4  复制结果到 indoor\
+echo  [2/4] copying results into indoor\
 echo ============================================================
 set /a COPIED=0
 for %%F in (report.txt summary_cells.csv summary_groups.csv points_all.csv rounds.csv ^
@@ -51,34 +50,36 @@ for %%F in (report.txt summary_cells.csv summary_groups.csv points_all.csv round
         set /a COPIED+=1
     )
 )
-echo       已复制 !COPIED! 个文件
+echo        !COPIED! files copied
 
 echo.
 echo ============================================================
-echo  3/4  提交
+echo  [3/4] summarizing
+echo ============================================================
+python -c "import csv;rows=list(csv.reader(open(r'indoor/summary_groups.csv',encoding='utf-8-sig')));h=rows[0];i=h.index('group_short');j=h.index('PCE0_median(%)');k=h.index('PCE_norm_last_median(%)');[print('       %-12s PCE0 %6.2f%%   last(norm) %6.2f%%'%(r[i],float(r[j]),float(r[k]))) for r in rows[1:]]"
+
+echo.
+echo ============================================================
+echo  [4/4] commit and push
 echo ============================================================
 git add -A
 git diff --cached --quiet
 if errorlevel 1 (
-    git commit -q -m "更新 indoor 数据快照"
-    echo       已提交
+    git commit -q -m "���� indoor ���ݿ���"
+    echo        committed
 ) else (
-    echo       与上次提交无差异，跳过提交
+    echo        no changes, commit skipped
 )
-
-echo.
-echo ============================================================
-echo  4/4  推送到 GitHub
-echo ============================================================
 git push
 if errorlevel 1 (
     echo.
-    echo [提示] 推送失败（网络或凭据问题）。本地提交已保留，
-    echo        网络恢复后再双击本脚本即可补推。
+    echo [WARN] push failed (network or credential). Commit kept locally;
+    echo        run this script again later to push.
     goto :end
 )
+echo        pushed
 echo.
-echo [完成] https://github.com/littleBlack2003/stabilty-data
+echo [DONE] https://github.com/littleBlack2003/stabilty-data
 
 :end
 echo.
