@@ -65,7 +65,8 @@ python stability_report.py --data "D:\zlc2026年11月4日" --suns 0.55 --area 0.
 - 从 IV 曲线重算全部参数，不采信表头 `Etac`
 - 自动标记并剔除异常点：`VOC_LOW` / `FF_LOW` / `ISC_LOW` / `PMAX_LOW` / `LOW_LIGHT` / `HDR_MISMATCH`
 - 片数不足正常轮 80% 的轮次（正在测的最后一轮）不参与分组均值，避免假跳变
-- 末端斜率默认取**最后 1 h**（`--tail-hours`），并在尾窗内相邻轮中位 Isc 变化 ≥ 1.5% 时给出「光强跳变」告警，避免把光源变化误判成器件回升/衰减
+- 末端斜率默认取**最后 5 h**（`--tail-hours`），窗口内全部点做最小二乘线性拟合，并同时给出 R²（判断这段线性拟合是否可信）
+- 尾窗内相邻轮中位 Isc 变化 ≥ 1.5% 时给出「光强跳变」告警，避免把光源变化误判成器件回升/衰减
 
 ## 一键刷新 + 推送
 
@@ -76,7 +77,7 @@ rem 顶部可改的配置
 set "DATA_DIR=D:\zlc2026年11月4日"      原始数据目录（含 MEAS/ 与 STAT/）
 set "SUNS=0.55"                          名义光强
 set "AREA=0.1"                           单片面积 cm²
-set "TAIL_HOURS=1"                       末端斜率窗口（小时）
+set "TAIL_HOURS=5"                       末端斜率窗口（小时）
 set "STABLE_SLOPE=0.1"                   稳定判据 %/h
 set "EXCLUDE=3,7,9"                      固定剔除的通道
 set "SCRIPT_SRC=...	ools\stability_report.py"   源脚本（存在则同步到 indoor/）
