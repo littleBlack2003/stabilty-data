@@ -65,3 +65,22 @@ python stability_report.py --data "D:\zlc2026年11月4日" --suns 0.55 --area 0.
 - 从 IV 曲线重算全部参数，不采信表头 `Etac`
 - 自动标记并剔除异常点：`VOC_LOW` / `FF_LOW` / `ISC_LOW` / `PMAX_LOW` / `LOW_LIGHT` / `HDR_MISMATCH`
 - 片数不足正常轮 80% 的轮次（正在测的最后一轮）不参与分组均值，避免假跳变
+
+## 一键刷新 + 推送
+
+仓库根目录的 `publish_indoor.bat`：双击即完成「重新分析 → 复制到 indoor/ → 提交 → 推送」。
+
+```bat
+rem 顶部可改的配置
+set "DATA_DIR=D:\zlc2026年11月4日"      原始数据目录（含 MEAS/ 与 STAT/）
+set "SUNS=0.55"                          名义光强
+set "AREA=0.1"                           单片面积 cm²
+set "TAIL_HOURS=2"                       末端斜率窗口（小时）
+set "STABLE_SLOPE=0.1"                   稳定判据 %/h
+set "EXCLUDE=3,7,9"                      固定剔除的通道
+set "SCRIPT_SRC=...	ools\stability_report.py"   源脚本（存在则同步到 indoor/）
+```
+
+- 运行后控制台会打印两个体系的 `PCE0` 与末点归一化值
+- 数据无变化时自动跳过提交；推送失败时本地提交会保留，下次运行自动补推
+- 批处理为 GBK 编码、输出全 ASCII，避免中文路径/控制台代码页导致乱码
