@@ -27,13 +27,17 @@ echo ============================================================
 echo  [1/4] analyzing raw data
 echo        %DATA_DIR%
 echo ============================================================
+rem 先把最新脚本同步进 indoor\，再跑，避免用到上一版副本
+if exist "%SCRIPT_SRC%" (
+    copy /y "%SCRIPT_SRC%" "indoor\stability_report.py" >nul
+    echo        script synced
+)
 python "indoor\stability_report.py" --data "%DATA_DIR%" --suns %SUNS% --area %AREA% ^
        --tail-hours %TAIL_HOURS% --stable-slope %STABLE_SLOPE% --exclude %EXCLUDE% > "%LOG%" 2>&1
 if errorlevel 1 (
     echo [ERROR] analysis failed, see: %LOG%
     goto :end
 )
-if exist "%SCRIPT_SRC%" copy /y "%SCRIPT_SRC%" "indoor\stability_report.py" >nul
 echo        done
 
 echo.

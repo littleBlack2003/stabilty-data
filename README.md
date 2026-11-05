@@ -65,6 +65,7 @@ python stability_report.py --data "D:\zlc2026年11月4日" --suns 0.55 --area 0.
 - 从 IV 曲线重算全部参数，不采信表头 `Etac`
 - 自动标记并剔除异常点：`VOC_LOW` / `FF_LOW` / `ISC_LOW` / `PMAX_LOW` / `LOW_LIGHT` / `HDR_MISMATCH`
 - 片数不足正常轮 80% 的轮次（正在测的最后一轮）不参与分组均值，避免假跳变
+- 末端斜率默认取**最后 1 h**（`--tail-hours`），并在尾窗内相邻轮中位 Isc 变化 ≥ 1.5% 时给出「光强跳变」告警，避免把光源变化误判成器件回升/衰减
 
 ## 一键刷新 + 推送
 
