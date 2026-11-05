@@ -1,84 +1,84 @@
 @echo off
-setlocal enabledelayedexpansion
+chcp 65001 >nul
+setlocal
 rem ============================================================
-rem  Ò»¼üË¢ĞÂ + ÍÆËÍ indoor ÎÈ¶¨ĞÔÊı¾İ
-rem  Ë«»÷ÔËĞĞ£»ÏÂÃæµÄÅäÖÃ°´ĞèĞŞ¸Ä
+rem  ä¸€é”®åˆ·æ–° + æ¨é€ indoor ç¨³å®šæ€§æ•°æ®ï¼ˆåŒå‡»è¿è¡Œï¼‰
+rem  ä¸‹é¢çš„é…ç½®æŒ‰éœ€ä¿®æ”¹
 rem ============================================================
-set "DATA_DIR=D:\zlc2026Äê11ÔÂ4ÈÕ"
+set "DATA_DIR=D:\zlc2026å¹´11æœˆ4æ—¥"
 set "SUNS=0.55"
 set "AREA=0.1"
 set "TAIL_HOURS=2"
 set "STABLE_SLOPE=0.1"
 set "EXCLUDE=3,7,9"
-rem ¹éµµ½Å±¾µÄÔ´Í·£¨¿ÉÑ¡£¬´æÔÚ¾ÍÍ¬²½µ½ indoor\£©£»Áô¿ÕÔò²»Í¬²½
-set "SCRIPT_SRC=E:\OneDrive\009×Ô±àĞ´Èí¼ş\Stability test softwares\tools\stability_report.py"
+rem å½’æ¡£è„šæœ¬çš„æºå¤´ï¼ˆå¯é€‰ï¼Œå­˜åœ¨å°±åŒæ­¥åˆ° indoor\ï¼‰ï¼›ç•™ç©ºåˆ™ä¸åŒæ­¥
+set "SCRIPT_SRC=E:\OneDrive\009è‡ªç¼–å†™è½¯ä»¶\Stability test softwares\tools\stability_report.py"
 
 cd /d "%~dp0"
 set "REPORT=%DATA_DIR%\REPORT"
+set "LOG=%TEMP%\stability_publish.log"
 
 where python >nul 2>nul
 if errorlevel 1 (
-    echo [´íÎó] ÕÒ²»µ½ python£¬ÇëÈ·ÈÏÒÑ¼ÓÈë PATH
+    echo [é”™è¯¯] æ‰¾ä¸åˆ° pythonï¼Œè¯·ç¡®è®¤å·²åŠ å…¥ PATH
     goto :end
 )
 
 echo ============================================================
-echo  1/4  ·ÖÎöÔ­Ê¼Êı¾İ
+echo  1/4  åˆ†æåŸå§‹æ•°æ®
 echo       %DATA_DIR%
 echo ============================================================
 python "indoor\stability_report.py" --data "%DATA_DIR%" --suns %SUNS% --area %AREA% ^
-       --tail-hours %TAIL_HOURS% --stable-slope %STABLE_SLOPE% --exclude %EXCLUDE% > "_last_run.log" 2>&1
+       --tail-hours %TAIL_HOURS% --stable-slope %STABLE_SLOPE% --exclude %EXCLUDE% > "%LOG%" 2>&1
 if errorlevel 1 (
-    echo [´íÎó] ·ÖÎöÊ§°Ü£¬Ïê¼û _last_run.log
+    echo [é”™è¯¯] åˆ†æå¤±è´¥ï¼Œè¯·æŸ¥çœ‹ %LOG%
     goto :end
 )
-for /f "tokens=*" %%L in ('findstr /c:"Íê³É£º" _last_run.log') do echo       %%L
-
+findstr /c:"REPORT" "%LOG%"
 if exist "%SCRIPT_SRC%" copy /y "%SCRIPT_SRC%" "indoor\stability_report.py" >nul
 
 echo.
 echo ============================================================
-echo  2/4  ¸´ÖÆ½á¹ûµ½ indoor\
+echo  2/4  å¤åˆ¶ç»“æœåˆ° indoor\
 echo ============================================================
-for %%F in (report.txt summary_cells.csv summary_groups.csv points_all.csv rounds.csv) do (
-    if exist "%REPORT%\%%F" copy /y "%REPORT%\%%F" "indoor\%%F" >nul
+set /a COPIED=0
+for %%F in (report.txt summary_cells.csv summary_groups.csv points_all.csv rounds.csv ^
+            aligned_pce.csv aligned_pce_norm.csv aligned_isc_norm.csv ^
+            aligned_voc_norm.csv aligned_ff_norm.csv aligned_group_mean.csv ^
+            fig_pce.png fig_group.png fig_ranking.png fig_iv_last.png) do (
+    if exist "%REPORT%\%%F" (
+        copy /y "%REPORT%\%%F" "indoor\%%F" >nul
+        set /a COPIED+=1
+    )
 )
-for %%F in (aligned_pce.csv aligned_pce_norm.csv aligned_isc_norm.csv aligned_voc_norm.csv aligned_ff_norm.csv aligned_group_mean.csv) do (
-    if exist "%REPORT%\%%F" copy /y "%REPORT%\%%F" "indoor\%%F" >nul
-)
-for %%F in (fig_pce.png fig_group.png fig_ranking.png fig_iv_last.png) do (
-    if exist "%REPORT%\%%F" copy /y "%REPORT%\%%F" "indoor\%%F" >nul
-)
-echo       ÒÑ¸´ÖÆ 15 ¸öÎÄ¼ş
+echo       å·²å¤åˆ¶ !COPIED! ä¸ªæ–‡ä»¶
 
 echo.
 echo ============================================================
-echo  3/4  Ìá½»
+echo  3/4  æäº¤
 echo ============================================================
 git add -A
 git diff --cached --quiet
 if errorlevel 1 (
-    for /f "tokens=1-3 delims=/- " %%a in ("%DATE%") do set "D=%%a-%%b-%%c"
-    git commit -q -m "¸üĞÂ indoor Êı¾İ¿ìÕÕ !D! %TIME:~0,5%"
-    echo       ÒÑÌá½»£º!D! %TIME:~0,5%
+    git commit -q -m "æ›´æ–° indoor æ•°æ®å¿«ç…§"
+    echo       å·²æäº¤
 ) else (
-    echo       ÓëÉÏ´ÎÌá½»ÎŞ²îÒì£¬Ìø¹ıÌá½»
+    echo       ä¸ä¸Šæ¬¡æäº¤æ— å·®å¼‚ï¼Œè·³è¿‡æäº¤
 )
 
 echo.
 echo ============================================================
-echo  4/4  ÍÆËÍµ½ GitHub
+echo  4/4  æ¨é€åˆ° GitHub
 echo ============================================================
 git push
 if errorlevel 1 (
     echo.
-    echo [ÌáÊ¾] ÍÆËÍÊ§°Ü£¬¿ÉÄÜÊÇÍøÂç»òÆ¾¾İÎÊÌâ¡£
-    echo        ±¾µØÌá½»ÒÑ±£Áô£¬ÍøÂç»Ö¸´ºóÔÙÔËĞĞÒ»´Î±¾½Å±¾¼´¿É²¹ÍÆ¡£
+    echo [æç¤º] æ¨é€å¤±è´¥ï¼ˆç½‘ç»œæˆ–å‡­æ®é—®é¢˜ï¼‰ã€‚æœ¬åœ°æäº¤å·²ä¿ç•™ï¼Œ
+    echo        ç½‘ç»œæ¢å¤åå†åŒå‡»æœ¬è„šæœ¬å³å¯è¡¥æ¨ã€‚
     goto :end
 )
 echo.
-echo [Íê³É] https://github.com/littleBlack2003/stabilty-data
-echo.
+echo [å®Œæˆ] https://github.com/littleBlack2003/stabilty-data
 
 :end
 echo.

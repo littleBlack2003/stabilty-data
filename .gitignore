@@ -9,3 +9,5 @@ desktop.ini
 __pycache__/
 *.pyc
 *.tmp
+# 一键脚本的运行日志
+*.log
