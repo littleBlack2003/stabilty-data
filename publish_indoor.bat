@@ -56,7 +56,9 @@ echo.
 echo ============================================================
 echo  [3/4] summarizing
 echo ============================================================
-python -c "import csv;rows=list(csv.reader(open(r'indoor/summary_groups.csv',encoding='utf-8-sig')));h=rows[0];i=h.index('group_short');j=h.index('PCE0_median(%)');k=h.index('PCE_norm_last_median(%)');[print('       %-12s PCE0 %6.2f%%   last(norm) %6.2f%%'%(r[i],float(r[j]),float(r[k]))) for r in rows[1:]]"
+rem 只打印两行摘要；注意不要在这里用 %% 号，批处理会吞掉
+python -c "import csv;rows=list(csv.reader(open('indoor/summary_groups.csv',encoding='utf-8-sig')));[print('       ',r[1],'PCE0',r[4],'last',r[5]) for r in rows[1:]]"
+if errorlevel 1 echo [WARN] summary skipped
 
 echo.
 echo ============================================================
