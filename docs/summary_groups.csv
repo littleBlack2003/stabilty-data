@@ -1,3 +1,3 @@
 ﻿group,group_short,n_cells,n_valid_cells,PCE0_median(%),PCE_norm_last_median(%),PCE_norm_last_min(%),PCE_norm_last_max(%),degr_rate_median(%/h),T80_median(h),n_reach_T80,best_cell,best_norm(%),worst_cell,worst_norm(%),cells
-ZnO/D18:L8/MoOx/Ag,MoOx/Ag,6,6,14.9008,53.86,53.05,55.31,-0.08,50.60,6,C006,55.31,C002,53.05,"C001,C002,C004,C005,C006,C008"
-ZnO/D18:L8/PEDOT-F/Ag,PEDOT-F/Ag,7,7,15.6994,78.25,76.92,90.62,-0.05,309.40,4,C013,90.62,C010,76.92,"C010,C011,C012,C013,C014,C015,C016"
+ZnO/D18:L8/MoOx/Ag,MoOx/Ag,6,6,14.9008,50.50,49.83,51.94,-0.08,50.60,6,C006,51.94,C008,49.83,"C001,C002,C004,C005,C006,C008"
+ZnO/D18:L8/PEDOT-F/Ag,PEDOT-F/Ag,7,7,15.6994,73.39,72.69,84.73,-0.05,310.75,5,C013,84.73,C010,72.69,"C010,C011,C012,C013,C014,C015,C016"
